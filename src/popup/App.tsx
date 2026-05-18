@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Loader2, Music, Users, Clock3, X, Github, Languages, Trash2, Play, Pause, Check } from 'lucide-react';
+import { Loader2, Music, Users, Clock3, X, Github, Languages, Trash2, Play, Pause, Check, History } from 'lucide-react';
 import { FacebookTokens } from '../lib/tokens';
 import { processNoteInput } from '../lib/noteProcessor';
 import { createTranslator, resolveInitialLanguage, type LanguageCode } from './i18n';
@@ -7,6 +7,7 @@ import { createTranslator, resolveInitialLanguage, type LanguageCode } from './i
 const MAX_DESCRIPTION_LENGTH = 600;
 const POPUP_STATE_KEY = 'popupComposerStateV2';
 const POPUP_LANGUAGE_KEY = 'popupLanguageV1';
+const POPUP_HISTORY_KEY = 'popupNoteHistoryV1';
 const MUSIC_PAGE_SIZE = 12;
 const GITHUB_URL = 'https://github.com/cyber-lab-9198/Fb-Notes-Extention';
 
@@ -23,6 +24,13 @@ type FriendItem = {
   id: string;
   name: string;
   imageUri?: string;
+};
+type NoteHistoryItem = {
+  id: string;
+  text: string;
+  musicTitle?: string;
+  musicArtist?: string;
+  timestamp: number;
 };
 type MusicItem = {
   id: string;
@@ -132,8 +140,9 @@ const App: React.FC = () => {
   const [currentStatusLoading, setCurrentStatusLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [activeModal, setActiveModal] = useState<'audience' | 'duration' | 'music' | null>(null);
+  const [activeModal, setActiveModal] = useState<'audience' | 'duration' | 'music' | 'history' | null>(null);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
+  const [noteHistory, setNoteHistory] = useState<NoteHistoryItem[]>([]);
 
   const [language, setLanguage] = useState<LanguageCode>(resolveInitialLanguage());
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
@@ -145,10 +154,14 @@ const App: React.FC = () => {
   const t = useMemo(() => createTranslator(language), [language]);
 
   useEffect(() => {
-    chrome.storage.local.get([POPUP_LANGUAGE_KEY], (res) => {
+    chrome.storage.local.get([POPUP_LANGUAGE_KEY, POPUP_HISTORY_KEY], (res) => {
       const saved = res?.[POPUP_LANGUAGE_KEY] as LanguageCode | undefined;
       if (saved === 'vi' || saved === 'en') {
         setLanguage(saved);
+      }
+      const savedHistory = res?.[POPUP_HISTORY_KEY] as NoteHistoryItem[] | undefined;
+      if (Array.isArray(savedHistory)) {
+        setNoteHistory(savedHistory);
       }
     });
   }, []);
@@ -620,6 +633,20 @@ const App: React.FC = () => {
 
       if (response?.success) {
         setResult({ type: 'success', message: t('share.success') });
+
+        const newHistoryItem: NoteHistoryItem = {
+          id: Date.now().toString(),
+          text: descriptionText || '',
+          musicTitle: selectedMusic?.title,
+          musicArtist: selectedMusic?.artist,
+          timestamp: Date.now(),
+        };
+        setNoteHistory(prev => {
+          const updated = [newHistoryItem, ...prev].slice(0, 50);
+          chrome.storage.local.set({ [POPUP_HISTORY_KEY]: updated });
+          return updated;
+        });
+
         setNoteText('');
 
         setCurrentStatusLoading(true);
@@ -832,6 +859,15 @@ const App: React.FC = () => {
                     >
                       <Github size={14} />
                     </button>
+                    <button
+                      className={`icon-btn ${activeModal === 'history' ? 'has-value' : ''}`}
+                      onClick={() => setActiveModal('history')}
+                      disabled={tokenStatus !== 'ready'}
+                      title="Lịch sử"
+                      type="button"
+                    >
+                      <History size={14} />
+                    </button>
                     <div className="lang-menu-wrapper" data-lang-menu>
                       <button
                         className={`icon-btn ${showLanguageMenu ? 'has-value' : ''}`}
@@ -922,6 +958,42 @@ const App: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* History Modal */}
+      {activeModal === 'history' && (
+        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">Lịch sử ghi chú</span>
+              <button className="modal-close" onClick={() => setActiveModal(null)}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ padding: 0 }}>
+              <div className="history-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {noteHistory.length === 0 ? (
+                  <div className="music-empty" style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>Chưa có ghi chú nào trong lịch sử.</div>
+                ) : (
+                  noteHistory.map((item) => (
+                    <div key={item.id} className="history-item" style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>
+                        {new Date(item.timestamp).toLocaleString('vi-VN')}
+                      </div>
+                      {item.text && <div style={{ fontSize: '14px', marginBottom: '8px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.4 }}>{item.text}</div>}
+                      {item.musicTitle && (
+                        <div style={{ fontSize: '12px', color: '#a78bfa', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Music size={12} />
+                          {item.musicTitle} {item.musicArtist ? `- ${item.musicArtist}` : ''}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Audience Modal */}
       {activeModal === 'audience' && (
