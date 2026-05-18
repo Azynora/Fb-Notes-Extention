@@ -28,8 +28,6 @@ Tiện ích Chrome mở rộng cho phép viết ghi chú Facebook dài, cắt nh
 - **Đa ngôn ngữ:** Hỗ trợ Tiếng Việt và English
 - **Bảo mật cao:** Không gửi dữ liệu ra server bên ngoài
 
-<img src="screenshots/image.png" width="300" alt="screenshot"/>
-
 ## Cải tiến bảo mật v2.0.0
 
 | Vấn đề (v1.x) | Giải pháp (v2.0) |
