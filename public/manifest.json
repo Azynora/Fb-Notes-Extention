@@ -7,12 +7,14 @@
     "activeTab",
     "scripting",
     "storage",
+    "tabs",
     "webNavigation"
   ],
   "host_permissions": [
     "*://*.facebook.com/*",
     "*://*.messenger.com/*"
   ],
+  "incognito": "spanning",
   "background": {
     "service_worker": "background.js",
     "type": "module"

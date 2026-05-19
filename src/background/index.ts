@@ -58,10 +58,16 @@ interface SearchFriendsMessage {
 type ExtensionMessage = CreateNoteMessage | GetTokensMessage | GetCurrentNoteStatusMessage | DeleteNoteMessage | SearchMusicMessage | SearchFriendsMessage | PlayMusicMessage;
 
 chrome.webNavigation.onCompleted.addListener((details) => {
+  // Only run on main frame, skip sub-frames (iframes) to avoid unnecessary errors
+  if (details.frameId !== 0) return;
   if (details.url.includes('facebook.com')) {
+    // Wrap in try-catch to handle tabs where extension lacks permission
+    // (e.g., incognito tabs where the extension is not enabled)
     chrome.scripting.executeScript({
       target: { tabId: details.tabId },
       func: checkInitialState
+    }).catch(() => {
+      // Silently ignore — extension may not have access to this tab (incognito, etc.)
     });
   }
 });
