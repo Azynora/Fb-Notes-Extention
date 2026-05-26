@@ -3,6 +3,7 @@
   "name": "Azynora FB Notes",
   "version": "2.0.0",
   "description": "Viết ghi chú Facebook dài, cắt nhạc, tùy chỉnh thời hạn hiển thị. Extended Facebook notes with music, custom durations & enhanced security.",
+  "homepage_url": "https://github.com/Azynora",
   "permissions": [
     "activeTab",
     "scripting",

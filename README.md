@@ -46,18 +46,24 @@ Tiện ích Chrome mở rộng cho phép viết ghi chú Facebook dài, cắt nh
 
 1. Tải file từ [Releases](https://github.com/cyber-lab-9198/Fb-Notes-Extention/releases)
 2. Giải nén vào thư mục bất kỳ
-3. Mở Chrome → `chrome://extensions/`
-4. Bật **Chế độ dành cho nhà phát triển**
-5. Nhấn **Tải tiện ích đã giải nén** → chọn thư mục vừa giải nén
+3. **Đối với Chrome:**
+   - Mở Chrome → `chrome://extensions/`
+   - Bật **Chế độ dành cho nhà phát triển**
+   - Nhấn **Tải tiện ích đã giải nén** → chọn thư mục `chrome` vừa giải nén.
+4. **Đối với Firefox (bao gồm cả Linux):**
+   - Mở Firefox → nhập `about:debugging#/runtime/this-firefox` vào thanh địa chỉ.
+   - Nhấn **Tải thành phần bổ trợ tạm thời...** (Load Temporary Add-on...) → chọn file `manifest.json` trong thư mục `firefox` vừa giải nén.
 
-### Cách 2: Build từ source
+### Cách 2: Build từ source (hỗ trợ Windows và Linux)
 
 ```bash
 npm install
 npm run build
 ```
 
-Load thư mục `dist` như extension unpacked trong Chrome.
+Sau khi build thành công:
+- Phiên bản cho **Chrome** nằm ở thư mục `dist/chrome/`. Load thư mục này như extension unpacked trong Chrome.
+- Phiên bản cho **Firefox** nằm ở thư mục `dist/firefox/`. Load file `manifest.json` trong thư mục này thông qua `about:debugging` trong Firefox.
 
 ## Hướng dẫn sử dụng
 

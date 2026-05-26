@@ -1,14 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import { copyFileSync, mkdirSync, existsSync, readdirSync } from 'fs';
+import { copyFileSync, mkdirSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = resolve(__dirname);
-const distDir = resolve(rootDir, 'dist');
+
+// Get target browser environment variable (defaults to 'chrome')
+const browser = process.env.VITE_BROWSER || 'chrome';
+const distDir = resolve(rootDir, 'dist', browser);
 
 function copyPublicFiles() {
   return {
@@ -18,7 +21,33 @@ function copyPublicFiles() {
       
       const manifestSrc = resolve(rootDir, 'public/manifest.json');
       const manifestDest = resolve(distDir, 'manifest.json');
-      copyFileSync(manifestSrc, manifestDest);
+      
+      // Load base manifest and transform if building for Firefox
+      const manifestRaw = readFileSync(manifestSrc, 'utf8');
+      const manifest = JSON.parse(manifestRaw);
+      
+      if (browser === 'firefox') {
+        // Transform background configurations: Chrome MV3 uses service_worker, Firefox MV3 uses scripts
+        if (manifest.background) {
+          const type = manifest.background.type;
+          manifest.background = {
+            scripts: ['background.js']
+          };
+          if (type) {
+            manifest.background.type = type;
+          }
+        }
+        
+        // Firefox requires browser_specific_settings with a valid addon ID for MV3 extensions
+        manifest.browser_specific_settings = {
+          gecko: {
+            id: 'azynora-fb-notes@github.com',
+            strict_min_version: '109.0'
+          }
+        };
+      }
+      
+      writeFileSync(manifestDest, JSON.stringify(manifest, null, 2), 'utf8');
       
       const iconsSrc = resolve(rootDir, 'public/icons');
       const iconsDest = resolve(distDir, 'icons');
@@ -39,6 +68,7 @@ export default defineConfig({
   publicDir: false,
   build: {
     outDir: distDir,
+    emptyOutDir: true,
     rollupOptions: {
       input: {
         popup: resolve(rootDir, 'popup.html'),

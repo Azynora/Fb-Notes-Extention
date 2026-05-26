@@ -38,18 +38,24 @@ A Chrome extension for writing extended Facebook notes with music, custom durati
 
 1. Download from [Releases](https://github.com/cyber-lab-9198/Fb-Notes-Extention/releases)
 2. Extract to any folder
-3. Open Chrome → `chrome://extensions/`
-4. Enable **Developer mode**
-5. Click **Load unpacked** → select the extracted folder
+3. **For Chrome:**
+   - Open Chrome → `chrome://extensions/`
+   - Enable **Developer mode**
+   - Click **Load unpacked** → select the `chrome` folder inside the extracted directory.
+4. **For Firefox (including Linux):**
+   - Open Firefox → enter `about:debugging#/runtime/this-firefox` in the address bar.
+   - Click **Load Temporary Add-on...** → select the `manifest.json` file inside the `firefox` folder of the extracted directory.
 
-### Option 2: Build from source
+### Option 2: Build from source (supports Windows & Linux)
 
 ```bash
 npm install
 npm run build
 ```
 
-Load the `dist` folder as an unpacked extension in Chrome.
+After a successful build:
+- The **Chrome** version is generated in `dist/chrome/`. Load this folder as an unpacked extension in Chrome.
+- The **Firefox** version is generated in `dist/firefox/`. Load the `manifest.json` file in this folder via Firefox `about:debugging`.
 
 ## Usage
 
