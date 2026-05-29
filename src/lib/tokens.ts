@@ -1,11 +1,4 @@
-/**
- * Facebook token extraction and validation utilities.
- *
- * Security notes:
- * - Tokens are extracted within the page context only. Raw cookie strings and
- *   full HTML bodies are never sent outside the page context.
- * - All extracted values pass through strict sanitization before use.
- */
+// Xử lý token Facebook - trích xuất và validate
 
 export interface FacebookTokens {
   fb_dtsg: string;
@@ -14,11 +7,6 @@ export interface FacebookTokens {
   lsd: string;
 }
 
-/**
- * Extended page context containing all parameters needed for GraphQL requests.
- * Extracted once per session from the active Facebook page so that subsequent
- * operations never need to read cookies or DOM again.
- */
 export interface PageContext {
   tokens: FacebookTokens;
   spinR: string;
@@ -30,14 +18,7 @@ export interface PageContext {
   cometReq: string;
 }
 
-// ---------------------------------------------------------------------------
-// Sanitization helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Validates that a string looks like a safe Facebook token (short ASCII,
- * no embedded JSON/HTML/script).
- */
+// check token có hợp lệ không (chỉ cho phép ASCII an toàn)
 export const isSafeToken = (value: unknown): value is string => {
   if (typeof value !== 'string') return false;
   const trimmed = value.trim();
@@ -51,16 +32,11 @@ const sanitizeToken = (value: string): string => {
   return isSafeToken(trimmed) ? trimmed : '';
 };
 
-/**
- * Validates that a string is a numeric-only Facebook ID.
- */
+// check FB user ID (chỉ số)
 export const isSafeNumericId = (value: unknown): value is string => {
   return typeof value === 'string' && /^\d{5,30}$/.test(value);
 };
 
-/**
- * Validates a spin/revision metadata value (numeric or short alphanumeric).
- */
 const sanitizePageMeta = (value: string): string => {
   if (!value) return '';
   const trimmed = value.trim();
@@ -69,12 +45,9 @@ const sanitizePageMeta = (value: string): string => {
   return trimmed;
 };
 
-// ---------------------------------------------------------------------------
-// Token extraction (runs inside page context)
-// ---------------------------------------------------------------------------
+// --- trích xuất token từ page ---
 
 const extractUserId = (cookie: string): string => {
-  // Only extract the c_user value – never expose the full cookie string.
   const match = /c_user=(\d+)/.exec(cookie);
   return match ? match[1] : '';
 };
@@ -101,59 +74,40 @@ const extractLsd = (html: string): string => {
   return match ? match[1] : '';
 };
 
-/**
- * High-level helper: extracts only the four Facebook tokens from the page.
- *
- * @param cookie - `document.cookie` value (only `c_user` is read)
- * @param html   - `document.documentElement.innerHTML`
- * @returns FacebookTokens or null if essential tokens are missing.
- */
+// lấy 4 token chính từ page
 export const extractTokens = (cookie: string, html: string): FacebookTokens | null => {
   const userId = extractUserId(cookie);
   const fb_dtsg = sanitizeToken(extractFbDtsg(html));
   const jazoest = extractJazoest(fb_dtsg);
   const lsd = sanitizeToken(extractLsd(html));
 
-  if (!userId || !fb_dtsg) {
-    return null;
-  }
-
+  if (!userId || !fb_dtsg) return null;
   return { fb_dtsg, jazoest, userId, lsd };
 };
 
-/**
- * Extracts the full PageContext from the current page.
- * This is designed to be called **once** per session so that raw cookie
- * and HTML data never need to be accessed again.
- *
- * @param cookie - `document.cookie`
- * @param html   - `document.documentElement.innerHTML`
- */
+// lấy full context 1 lần, sau đó ko cần đọc cookie/HTML nữa
 export const extractPageContext = (cookie: string, html: string): PageContext | null => {
   const tokens = extractTokens(cookie, html);
   if (!tokens) return null;
 
-  const extract = (regex: RegExp): string => {
+  const ext = (regex: RegExp): string => {
     const match = regex.exec(html);
     return match ? match[1] : '';
   };
 
   return {
     tokens,
-    spinR: sanitizePageMeta(extract(/"__spin_r":(\d+)/)),
-    spinB: sanitizePageMeta(extract(/"__spin_b":"([^"]+)"/)),
-    spinT: sanitizePageMeta(extract(/"__spin_t":(\d+)/)),
-    rev: sanitizePageMeta(extract(/"client_revision":(\d+)/)),
-    hsi: sanitizePageMeta(extract(/"hsi":"(\d+)"/)),
-    ccg: sanitizePageMeta(extract(/"__ccg":"([^"]+)"/)),
-    cometReq: sanitizePageMeta(extract(/"__comet_req":"?([^",}]+)"?/)),
+    spinR: sanitizePageMeta(ext(/"__spin_r":(\d+)/)),
+    spinB: sanitizePageMeta(ext(/"__spin_b":"([^"]+)"/)),
+    spinT: sanitizePageMeta(ext(/"__spin_t":(\d+)/)),
+    rev: sanitizePageMeta(ext(/"client_revision":(\d+)/)),
+    hsi: sanitizePageMeta(ext(/"hsi":"(\d+)"/)),
+    ccg: sanitizePageMeta(ext(/"__ccg":"([^"]+)"/)),
+    cometReq: sanitizePageMeta(ext(/"__comet_req":"?([^",}]+)"?/)),
   };
 };
 
-/**
- * Generates a v4-style UUID (not cryptographically secure – used for
- * client_mutation_id only).
- */
+// tạo UUID v4 (cho client_mutation_id thôi, ko cần crypto)
 export const generateUUID = (): string => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = (Math.random() * 16) | 0;

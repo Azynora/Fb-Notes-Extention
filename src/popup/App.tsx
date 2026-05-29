@@ -254,7 +254,7 @@ const App: React.FC = () => {
     }, (response) => {
       setMusicLoading(false);
       if (chrome.runtime.lastError) {
-        setResult({ type: 'error', message: chrome.runtime.lastError.message || 'Music search failed' });
+        setResult({ type: 'error', message: chrome.runtime.lastError.message || 'Lỗi tìm nhạc' });
         return;
       }
 
@@ -264,7 +264,7 @@ const App: React.FC = () => {
         setMusicItems(items);
         setVisibleMusicCount(MUSIC_PAGE_SIZE);
       } else {
-        setResult({ type: 'error', message: response?.error || 'Music search failed' });
+        setResult({ type: 'error', message: response?.error || 'Lỗi tìm nhạc' });
       }
     });
   }, [tokens, tokenStatus]);
@@ -289,7 +289,7 @@ const App: React.FC = () => {
 
     // Use progressiveDownloadUrl directly from search results
     if (!item.progressiveDownloadUrl) {
-      setResult({ type: 'error', message: 'No audio URL available' });
+      setResult({ type: 'error', message: 'Không có URL audio' });
       return;
     }
 
@@ -304,19 +304,19 @@ const App: React.FC = () => {
 
     audio.onerror = () => {
       setPlayingMusicId(null);
-      setResult({ type: 'error', message: 'Audio playback error' });
+      setResult({ type: 'error', message: 'Lỗi phát audio' });
     };
 
     audio.play().catch(() => {
       setPlayingMusicId(null);
-      setResult({ type: 'error', message: 'Failed to play audio' });
+      setResult({ type: 'error', message: 'Không phát được audio' });
     });
   }, [playingMusicId]);
 
   const handlePreviewPlayToggle = useCallback(() => {
     if (!selectedMusic) return;
     if (!selectedMusic.progressiveDownloadUrl) {
-      setResult({ type: 'error', message: 'No audio URL available' });
+      setResult({ type: 'error', message: 'Không có URL audio' });
       return;
     }
 
@@ -364,12 +364,12 @@ const App: React.FC = () => {
 
     audio.onerror = () => {
       setPreviewPlaying(false);
-      setResult({ type: 'error', message: 'Audio playback error' });
+      setResult({ type: 'error', message: 'Lỗi phát audio' });
     };
 
     audio.play().catch(() => {
       setPreviewPlaying(false);
-      setResult({ type: 'error', message: 'Failed to play audio' });
+      setResult({ type: 'error', message: 'Không phát được audio' });
     });
   }, [selectedMusic, previewPlaying, musicTrimStartMs, musicTrimWindowMs]);
 
@@ -401,7 +401,7 @@ const App: React.FC = () => {
     }, (response) => {
       setFriendLoading(false);
       if (chrome.runtime.lastError) {
-        setResult({ type: 'error', message: chrome.runtime.lastError.message || 'Friend search failed' });
+        setResult({ type: 'error', message: chrome.runtime.lastError.message || 'Lỗi tìm bạn' });
         return;
       }
 
@@ -424,7 +424,7 @@ const App: React.FC = () => {
           return prev.map((f) => lookup.get(f.id) || f);
         });
       } else {
-        setResult({ type: 'error', message: response?.error || 'Friend search failed' });
+        setResult({ type: 'error', message: response?.error || 'Lỗi tìm bạn' });
       }
     });
   }, [tokens, tokenStatus]);
@@ -627,7 +627,7 @@ const App: React.FC = () => {
     }, (response) => {
       setIsSubmitting(false);
       if (chrome.runtime.lastError) {
-        setResult({ type: 'error', message: chrome.runtime.lastError.message || 'Background worker not available' });
+        setResult({ type: 'error', message: chrome.runtime.lastError.message || 'Lỗi kết nối background' });
         return;
       }
 
@@ -720,13 +720,13 @@ const App: React.FC = () => {
     }, (response) => {
       setIsDeleting(false);
       if (chrome.runtime.lastError) {
-        setResult({ type: 'error', message: chrome.runtime.lastError.message || 'Delete note failed' });
+        setResult({ type: 'error', message: chrome.runtime.lastError.message || 'Xoá note lỗi' });
         return;
       }
       if (response?.success) {
         refreshCurrentNoteStatus();
       } else {
-        setResult({ type: 'error', message: response?.error || 'Delete note failed' });
+        setResult({ type: 'error', message: response?.error || 'Xoá note lỗi' });
       }
     });
   }, [tokens, isDeleting, currentNoteStatus, refreshCurrentNoteStatus]);

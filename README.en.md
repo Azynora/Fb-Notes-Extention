@@ -2,86 +2,67 @@
 
 [Phiên bản Tiếng Việt](./README.md)
 
-A Chrome extension for writing extended Facebook notes with music, custom durations, and enhanced security.
-
-## What's New in v2.0.0 (Security Hardened)
-
-- **Enhanced security:** Raw cookies and HTML never leave the page context — only extracted, sanitized tokens are passed to the extension.
-- **XSS prevention:** Content script uses `textContent` + DOM API instead of `innerHTML`, completely eliminating XSS vectors.
-- **Consistent token validation:** All tokens pass through `isSafeToken()` / `isSafeNumericId()` before use.
-- **Rate limiting:** API call frequency is throttled to prevent abuse.
-- **Code refactor:** Centralized `PageContext` extraction in `tokens.ts` reduces code duplication.
+Chrome/Firefox extension that lets you write longer Facebook notes (up to 600 chars), attach music clips, and control who sees them.
 
 ## Features
 
-- **Beyond 60 characters:** Write notes up to 600 characters
-- **Custom durations:** From 1 hour to 8 days, or enter custom minutes
-- **Audience control:** Public, Friends, Contacts, or custom friend list
-- **Music attachment:** Search, preview, trim 30-second clips
-- **Dark theme:** Clean, minimal design
-- **Multilingual:** Vietnamese and English
-- **High security:** No data sent to external servers
+- Write notes up to 600 characters (normally FB limits to 60)
+- Custom duration: 1 hour to 8 days, or enter any number of minutes
+- Audience control: public, friends, contacts, or pick specific people
+- Music: search, preview, trim a 30s clip
+- Dark theme
+- Vietnamese + English UI
 
-## Security Improvements v2.0.0
+## Security (v2.0)
 
-| Issue (v1.x) | Fix (v2.0) |
-|---|---|
-| Raw `document.cookie` exposed to extension context | Only `c_user` extracted in page context; raw cookie never leaves the page |
-| Full `document.documentElement.innerHTML` sent as-is | Only specific tokens extracted via regex; raw HTML never leaves the page |
-| `innerHTML` in content script (XSS risk) | Uses `textContent` + `createElement` — no XSS vector |
-| Inconsistent token validation | `isSafeToken()`, `isSafeNumericId()`, `sanitizePageMeta()` applied everywhere |
-| No API rate limiting | 500ms rate limit between same-type requests |
+- Tokens extracted in page context only, raw cookies never leave the page
+- Content script uses `textContent` instead of `innerHTML` — no XSS
+- All tokens validated before use
+- 500ms rate limiting between requests
 
-## Installation
+## Install
 
-### Option 1: Pre-built (Recommended)
+### Pre-built
 
-1. Download from [Releases](https://github.com/cyber-lab-9198/Fb-Notes-Extention/releases)
-2. Extract to any folder
-3. **For Chrome:**
-   - Open Chrome → `chrome://extensions/`
-   - Enable **Developer mode**
-   - Click **Load unpacked** → select the `chrome` folder inside the extracted directory.
-4. **For Firefox (including Linux):**
-   - Open Firefox → enter `about:debugging#/runtime/this-firefox` in the address bar.
-   - Click **Load Temporary Add-on...** → select the `manifest.json` file inside the `firefox` folder of the extracted directory.
+1. Grab from [Releases](https://github.com/cyber-lab-9198/Fb-Notes-Extention/releases)
+2. Unzip
+3. **Chrome:** `chrome://extensions/` → Developer mode → Load unpacked → pick the `chrome` folder
+4. **Firefox:** `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → pick `manifest.json` in the `firefox` folder
 
-### Option 2: Build from source (supports Windows & Linux)
+### Build yourself
 
 ```bash
 npm install
 npm run build
 ```
 
-After a successful build:
-- The **Chrome** version is generated in `dist/chrome/`. Load this folder as an unpacked extension in Chrome.
-- The **Firefox** version is generated in `dist/firefox/`. Load the `manifest.json` file in this folder via Firefox `about:debugging`.
+Output goes to `dist/chrome/` and `dist/firefox/`.
 
 ## Usage
 
-1. Open [Facebook](https://facebook.com) and log in
-2. Click the extension icon in the Chrome toolbar
-3. Write your note content (up to 600 characters)
-4. Choose audience, duration, music (optional)
-5. Click **Share**
+1. Open Facebook, log in
+2. Click the extension icon
+3. Write your note (max 600 chars)
+4. Pick audience, duration, music if you want
+5. Hit **Share**
 
-## Development
+## Dev
 
 ```bash
-npm install       # Install dependencies
-npm run dev       # Development mode
-npm run build     # Production build
+npm install
+npm run dev
+npm run build
 ```
 
 ## Notes
 
-- Extension only works on facebook.com pages
-- Character limit is 600 (Facebook API constraint for music notes)
-- No data is sent to external servers — all requests go to facebook.com only
+- Only works on facebook.com
+- 600 char limit is a Facebook API thing
+- No data sent to external servers
 
 ## License
 
-MIT License
+MIT
 
 ---
 

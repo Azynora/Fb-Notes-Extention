@@ -82,7 +82,7 @@ export default defineConfig({
         dir: distDir,
       },
     },
-    minify: false,
+    minify: 'esbuild',
     sourcemap: false,
     target: 'esnext',
   },
