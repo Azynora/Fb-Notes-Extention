@@ -937,7 +937,9 @@ async function fetchCurrentNoteStatusFromPage(
       status: {
         richStatusId,
         avatarUri: typeof actor?.profilePicture?.uri === 'string' ? actor.profilePicture.uri : undefined,
-        description: typeof status?.description === 'string' ? status.description : null,
+        description: typeof status?.sub_status?.text === 'string'
+          ? status.sub_status.text
+          : (typeof status?.description === 'string' ? status.description : null),
         noteType: typeof status?.note_type === 'string' ? status.note_type : null,
         visibility: typeof status?.visibility === 'string' ? status.visibility : null,
         expirationTime: typeof status?.expiration_time === 'number' ? status.expiration_time : null,
