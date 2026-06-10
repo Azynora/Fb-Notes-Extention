@@ -835,28 +835,28 @@ async function fetchCurrentNoteStatusFromPage(
   const ccg = extract(pageHtml, /"__ccg":"([^"]+)"/);
   const cometReq = extract(pageHtml, /"__comet_req":"?([^",}]+)"?/);
 
-  const body = new URLSearchParams();
-  body.append('av', tokens.userId);
-  body.append('__user', tokens.userId);
-  body.append('__a', '1');
-  body.append('__comet_req', cometReq || '15');
-  if (ccg) body.append('__ccg', ccg);
-  body.append('dpr', String(self.devicePixelRatio || 1));
-  body.append('fb_dtsg', tokens.fb_dtsg);
-  body.append('jazoest', tokens.jazoest);
-  if (isSafeToken(tokens.lsd)) body.append('lsd', tokens.lsd);
-  if (spinR) body.append('__spin_r', spinR);
-  if (spinB) body.append('__spin_b', spinB);
-  body.append('__spin_t', spinT || String(Math.floor(Date.now() / 1000)));
-  if (rev) body.append('__rev', rev);
-  if (hsi) body.append('__hsi', hsi);
-  body.append('fb_api_caller_class', 'RelayModern');
-  body.append('fb_api_req_friendly_name', 'MWInboxTrayNoteCreationDialogQuery');
-  body.append('server_timestamps', 'true');
-  body.append('variables', JSON.stringify({ scale: 1 }));
-  body.append('doc_id', '26067429279547490');
+  const sendQuery = async (docId: string) => {
+    const body = new URLSearchParams();
+    body.append('av', tokens.userId);
+    body.append('__user', tokens.userId);
+    body.append('__a', '1');
+    body.append('__comet_req', cometReq || '15');
+    if (ccg) body.append('__ccg', ccg);
+    body.append('dpr', String(self.devicePixelRatio || 1));
+    body.append('fb_dtsg', tokens.fb_dtsg);
+    body.append('jazoest', tokens.jazoest);
+    if (isSafeToken(tokens.lsd)) body.append('lsd', tokens.lsd);
+    if (spinR) body.append('__spin_r', spinR);
+    if (spinB) body.append('__spin_b', spinB);
+    body.append('__spin_t', spinT || String(Math.floor(Date.now() / 1000)));
+    if (rev) body.append('__rev', rev);
+    if (hsi) body.append('__hsi', hsi);
+    body.append('fb_api_caller_class', 'RelayModern');
+    body.append('fb_api_req_friendly_name', 'MWInboxTrayNoteCreationDialogQuery');
+    body.append('server_timestamps', 'true');
+    body.append('variables', JSON.stringify({ scale: 1 }));
+    body.append('doc_id', docId);
 
-  try {
     const response = await fetch('/api/graphql/', {
       method: 'POST', credentials: 'include',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-FB-Friendly-Name': 'MWInboxTrayNoteCreationDialogQuery' },
@@ -864,10 +864,36 @@ async function fetchCurrentNoteStatusFromPage(
     });
     const text = await response.text();
     const jsonText = text.replace('for (;;);', '').trim();
+    return JSON.parse(jsonText);
+  };
 
+  try {
     let json: any;
-    try { json = JSON.parse(jsonText); }
-    catch { return { success: false, error: `JSON lỗi: ${jsonText.slice(0, 200)}` }; }
+    let actor: any;
+    let status: any;
+
+    try {
+      json = await sendQuery('30899655739648624');
+      actor = json?.data?.viewer?.actor;
+      status = actor?.msgr_user_rich_status;
+    } catch (e) {
+      console.warn('Primary note query failed, trying fallback...', e);
+    }
+
+    if (!status) {
+      try {
+        const fallbackJson = await sendQuery('26067429279547490');
+        const fallbackActor = fallbackJson?.data?.viewer?.actor;
+        const fallbackStatus = fallbackActor?.msgr_user_rich_status;
+        if (fallbackStatus || !json) {
+          json = fallbackJson;
+          actor = fallbackActor;
+          status = fallbackStatus;
+        }
+      } catch (e) {
+        if (!json) throw e;
+      }
+    }
 
     if (json?.error) {
       return { success: false, error: `${json.errorSummary || 'Lỗi'} (${json.error})` };
@@ -876,8 +902,8 @@ async function fetchCurrentNoteStatusFromPage(
       return { success: false, error: json.errors[0]?.message || 'GraphQL lỗi' };
     }
 
-    const actor = json?.data?.viewer?.actor;
-    const status = actor?.msgr_user_rich_status;
+    actor = json?.data?.viewer?.actor;
+    status = actor?.msgr_user_rich_status;
 
     // tìm richStatusId, duyệt sâu nếu cần
     const findStatusId = (root: any): string | null => {
