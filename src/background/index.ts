@@ -815,6 +815,7 @@ async function fetchCurrentNoteStatusFromPage(
     customAudienceSize?: number | null;
     defaultAudienceSetting?: string | null;
   };
+  rawJson?: any;
 }> {
   const isSafeToken = (value: unknown): value is string => {
     return typeof value === 'string' && /^[A-Za-z0-9:_-]{6,300}$/.test(value);
@@ -950,6 +951,7 @@ async function fetchCurrentNoteStatusFromPage(
         defaultAudienceSetting: typeof json?.data?.xfb_fetch_default_note_audience_setting === 'string'
           ? json.data.xfb_fetch_default_note_audience_setting : null,
       },
+      rawJson: json,
     };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Lấy trạng thái lỗi' };

@@ -139,6 +139,7 @@ const App: React.FC = () => {
   const [currentNoteStatus, setCurrentNoteStatus] = useState<CurrentNoteStatus | null>(null);
   const [currentStatusLoading, setCurrentStatusLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [rawJsonDebug, setRawJsonDebug] = useState<any>(null);
 
   const [activeModal, setActiveModal] = useState<'audience' | 'duration' | 'music' | 'history' | null>(null);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
@@ -443,6 +444,7 @@ const App: React.FC = () => {
           return;
         }
         setCurrentNoteStatus(response.status || null);
+        setRawJsonDebug(response.rawJson || null);
       });
     }
   }, [tokenStatus, tokens, handleSearchMusic]);
@@ -659,6 +661,7 @@ const App: React.FC = () => {
             return;
           }
           setCurrentNoteStatus(statusResponse.status || null);
+          setRawJsonDebug(statusResponse.rawJson || null);
         });
       } else {
         setResult({ type: 'error', message: response?.error || t('share.error.failed') });
@@ -704,6 +707,7 @@ const App: React.FC = () => {
         return;
       }
       setCurrentNoteStatus(statusResponse.status || null);
+      setRawJsonDebug(statusResponse.rawJson || null);
     });
   }, [tokens]);
 
@@ -1364,6 +1368,16 @@ const App: React.FC = () => {
           {result.message}
         </div>
       )}
+
+      {/* Debug Section */}
+      <div style={{ marginTop: '15px', padding: '10px', borderTop: '1px solid rgba(255,255,255,0.1)', maxHeight: '180px', overflowY: 'auto', fontSize: '10px', fontFamily: 'monospace', width: '100%', boxSizing: 'border-box' }}>
+        <details>
+          <summary style={{ cursor: 'pointer', color: '#888', outline: 'none', userSelect: 'none' }}>Debug GraphQL Response</summary>
+          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: '#aaa', marginTop: '8px', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '4px' }}>
+            {rawJsonDebug ? JSON.stringify(rawJsonDebug, null, 2) : 'No raw data fetched yet'}
+          </pre>
+        </details>
+      </div>
     </div>
   );
 };
